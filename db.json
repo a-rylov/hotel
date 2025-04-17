@@ -39,24 +39,5 @@
       ]
     }
   ],
-  "bookings": [
-    {
-      "id": "8906",
-      "roomId": "3",
-      "startDate": "2025-04-18",
-      "endDate": "2025-04-20",
-      "guests": 1,
-      "contactName": "Андрей",
-      "contactEmail": "mrpikachugamer@mail.ru"
-    },
-    {
-      "id": "a134",
-      "roomId": "3",
-      "startDate": "2025-04-21",
-      "endDate": "2025-04-23",
-      "guests": 1,
-      "contactName": "21314",
-      "contactEmail": "213124"
-    }
-  ]
+  "bookings": []
 }

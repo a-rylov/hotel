@@ -1,7 +1,4 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
-import { ref } from 'vue'
-import type { Room } from '../types/models';
-import axios from 'axios'
 import HotelListView from '../views/HotelListView.vue'
 import HotelRoomView from '../views/HotelRoomView.vue'
 
@@ -17,7 +14,7 @@ const routes: RouteRecordRaw[] = [
     name: 'room',
     component: HotelRoomView,
     props: true,
-    meta: { title: 'Загрузка номера...' }
+    meta: { title: 'Бронирование комнаты' }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -30,22 +27,10 @@ const router = createRouter({
   routes
 })
 
- router.afterEach( async (to) => {
-  const roomId = to.params.id as string
-  const baseTitle = 'Отель "Элеон"'
-  const refRoom = ref<Room | null>(null)
-
-  try {
-    const res = await axios.get(`http://localhost:3001/rooms/${roomId}`)
-    refRoom.value = res.data
-
-    if (refRoom.value) {
-      let title = refRoom.value.title
-      document.title = `${title} | ${baseTitle}`
-    }
-  } catch (e) {
-    console.error('Ошибка при загрузке данных номера', e)
-  }
+router.afterEach((to) => {
+  const baseTitle = 'Бронирование отеля'
+  let title = to.meta.title || ''
+  document.title = `${title} | ${baseTitle}`
 })
 
 export default router

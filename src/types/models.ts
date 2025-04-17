@@ -26,5 +26,4 @@ export interface RoomFilters {
   maxPrice: number | null
   capacity: number | null
   bedType: string
-  date: string
 }

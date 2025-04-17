@@ -18,10 +18,6 @@
           <option value="двуспальная">Двуспальная</option>
         </select>
       </div>
-      <div class="col-md-3">
-        <label>Дата заселения</label>
-        <input v-model="filters.date" type="date" class="form-control" />
-      </div>
     </div>
     <button class="btn btn-secondary mt-3" @click="emitFilters">Применить</button>
   </div>
@@ -34,8 +30,7 @@ import type { RoomFilters } from '../types/models'
 const filters = ref<RoomFilters>({
   maxPrice: null,
   capacity: null,
-  bedType: '',
-  date: ''
+  bedType: ''
 })
 
 const emit = defineEmits<{

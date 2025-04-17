@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <div class="d-grid">
+    <div class="d-grid" v-if="isCapacityEnough">
       <button class="btn btn-success" :disabled="loading" @click="submitBooking">
         {{ loading ? 'Отправка...' : 'Забронировать' }}
       </button>
