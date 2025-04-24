@@ -47,33 +47,27 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../api/api'
 import type { Room, Booking } from '../types/models'
 
-// Props
 const props = defineProps<{
   room: Room
 }>()
 
-// Поля формы
 const startDate = ref('')
 const endDate = ref('')
 const contactName = ref('')
 const contactEmail = ref('')
 const guests = ref(1)
 
-// Статусы
 const loading = ref(false)
 const success = ref(false)
 const error = ref('')
 
-// Дата сегодня
 const today = new Date().toISOString().split('T')[0]
 
-// Проверка вместимости
 const isCapacityEnough = computed(() => guests.value <= props.room.capacity)
 
-// Загруженные брони
 const existingBookings = ref<Booking[]>([])
 
 function datesOverlap(startA: string, endA: string, startB: string, endB: string): boolean {
@@ -86,8 +80,7 @@ function datesOverlap(startA: string, endA: string, startB: string, endB: string
 
 async function loadBookings() {
   try {
-    const res = await axios.get(`http://localhost:3001/bookings?roomId=${props.room.id}`)
-    existingBookings.value = res.data
+    existingBookings.value = await api.getBookingsByRoom(props.room.id)
   } catch (e: any) {
     console.error('Ошибка загрузки бронирований:', e)
   }
@@ -107,7 +100,6 @@ async function submitBooking() {
     return
   }
 
-  // Проверка на пересечение с существующими бронями
   const isConflict = existingBookings.value.some(b =>
     datesOverlap(startDate.value, endDate.value, b.startDate, b.endDate)
   )
@@ -128,25 +120,30 @@ async function submitBooking() {
 
   loading.value = true
   try {
-    await axios.post('http://localhost:3001/bookings', booking)
+    await api.createBooking({
+      roomId: props.room.id,
+      startDate: startDate.value,
+      endDate: endDate.value,
+      guests: guests.value,
+      contactName: contactName.value,
+      contactEmail: contactEmail.value
+    })
+    
     success.value = true
-    // сброс формы
     startDate.value = ''
     endDate.value = ''
     contactName.value = ''
     contactEmail.value = ''
     guests.value = 1
 
-    // обновить брони
     await loadBookings()
   } catch (e: any) {
-    error.value = e.message || 'Не удалось отправить бронирование.'
+    error.value = e.response?.data?.message || 'Не удалось отправить бронирование.'
   } finally {
     loading.value = false
   }
 }
 
-// Загрузка бронирований при инициализации компонента
 onMounted(() => {
   loadBookings()
 })

@@ -24,35 +24,8 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useRoute } from 'vue-router'
-import type { Room } from '../types/models';
-
-const route = useRoute()
-
-const refRoom = ref<Room | null>(null)
-
-async function fetchRoomData() {
-  const roomId = route.params.id as string
-  const baseTitle = 'Отель "Элеон"'
-
-  try {
-    const res = await axios.get(`http://localhost:3001/rooms/${roomId}`)
-    refRoom.value = res.data
-
-    if (refRoom.value) {
-      let title = refRoom.value.title
-      document.title = `${title} | ${baseTitle}`
-    }
-  } catch (e) {
-    console.error('Ошибка при загрузке данных номера', e)
-  }
-}
-
-onMounted(() => {
-  fetchRoomData()
-})
+import { defineProps } from 'vue'
+import type { Room } from '../types/models'
 
 defineProps<{
   room: Room

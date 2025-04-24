@@ -17,11 +17,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
-import type { Room } from '../types/models'
+import { ref, onMounted } from 'vue'
+import api from '../api/api'
 import FiltersPanel from '../components/FiltersPanel.vue'
 import RoomCard from '../components/RoomCard.vue'
+import type { Room, RoomFilters } from '@/types/models'
 
 const rooms = ref<Room[]>([])
 const filteredRooms = ref<Room[]>([])
@@ -30,9 +30,8 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await axios.get<Room[]>('http://localhost:3001/rooms')
-    rooms.value = res.data
-    filteredRooms.value = res.data
+    rooms.value = await api.getRooms()
+    filteredRooms.value = rooms.value
   } catch (e: any) {
     error.value = e.message || 'Ошибка загрузки данных'
   } finally {
@@ -40,16 +39,14 @@ onMounted(async () => {
   }
 })
 
-function applyFilters(filters: any) {
-  filteredRooms.value = rooms.value.filter((room) => {
-    const matchPrice = !filters.maxPrice || room.price <= filters.maxPrice
-    const matchCapacity = !filters.capacity || room.capacity >= filters.capacity
-    const matchBed = !filters.bedType || room.bedType === filters.bedType
-    const matchDates =
-      !filters.date ||
-      room.availableDates.includes(filters.date)
-
-    return matchPrice && matchCapacity && matchBed && matchDates
-  })
+async function applyFilters(filters: RoomFilters) {
+  try {
+    loading.value = true
+    filteredRooms.value = await api.getRooms(filters)
+  } catch (e) {
+    console.error('Ошибка фильтрации:', e)
+  } finally {
+    loading.value = false
+  }
 }
 </script>

@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import api from '../api/api'
 import type { Room } from '../types/models'
 import ImageGallery from '../components/ImageGallery.vue'
 import BookingWidget from '../components/BookingWidget.vue'
@@ -31,11 +31,15 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const id = route.params.id
-    const res = await axios.get<Room>(`http://localhost:3001/rooms/${id}`)
-    room.value = res.data
+    const id = Number(route.params.id)
+    if (isNaN(id)) {
+      throw new Error('Неверный ID номера')
+    }
+    
+    room.value = await api.getRoom(id)
   } catch (e: any) {
-    error.value = e.message || 'Не удалось загрузить данные'
+    error.value = e.response?.data?.message || e.message || 'Не удалось загрузить данные номера'
+    console.error('Ошибка загрузки номера:', e)
   } finally {
     loading.value = false
   }
