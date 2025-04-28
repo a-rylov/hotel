@@ -7,6 +7,8 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let refreshPromise: Promise<string> | null = null;
+
 api.interceptors.request.use(config => {
   const token = Cookies.get('auth_token');
   if (token) {
@@ -17,13 +19,60 @@ api.interceptors.request.use(config => {
 
 api.interceptors.response.use(
   response => response,
-  error => {
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
+  async error => {
+    const originalRequest = error.config;
+    const refreshToken = Cookies.get('refresh_token');
+    
+    if (error.response?.status === 401 && !originalRequest._retry && refreshToken) {
+      originalRequest._retry = true;
+      
+      try {
+        if (!refreshPromise) {
+          refreshPromise = api.post('/auth/refresh', { refresh_token: refreshToken })
+            .then(response => {
+              Cookies.set('auth_token', response.data.access_token);
+              return response.data.access_token;
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
+        }
+        
+        const newToken = await refreshPromise;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Если refresh не удался, очищаем куки и перенаправляем на логин
+        Cookies.remove('auth_token');
+        Cookies.remove('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
     }
+    
     return Promise.reject(error);
   }
 );
+
+// Добавим функцию для периодического обновления токена
+function startTokenRefresh() {
+  setInterval(async () => {
+    const refreshToken = Cookies.get('refresh_token');
+    if (refreshToken) {
+      try {
+        const response = await api.post('/auth/refresh', { refresh_token: refreshToken });
+        Cookies.set('auth_token', response.data.access_token);
+      } catch (error) {
+        Cookies.remove('auth_token');
+        Cookies.remove('refresh_token');
+        window.location.href = '/login';
+      }
+    }
+  }, 10000); // Обновляем каждые 10 секунд
+}
+
+// Запускаем обновление токена при загрузке
+startTokenRefresh();
 
 export default {
   async getRooms(filters?: RoomFilters) {
@@ -67,6 +116,7 @@ export default {
       
       if (response.data?.success) {
         Cookies.set('auth_token', response.data.access_token);
+        Cookies.set('refresh_token', response.data.refresh_token);
         return { success: true };
       }
       

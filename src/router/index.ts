@@ -64,8 +64,9 @@ router.afterEach((to) => {
 
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!Cookies.get('auth_token');
+  const refreshToken = Cookies.get('refresh_token');
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated && !refreshToken) {
     console.log('Redirect to login (not authenticated)');
     next('/login');
   } else {
