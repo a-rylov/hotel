@@ -19,14 +19,6 @@
             Админ-панель
           </router-link>
           
-          <button 
-            v-if="isAuthenticated"
-            @click="logout" 
-            class="btn btn-outline-light"
-          >
-            Выйти
-          </button>
-          
           <router-link 
             v-else
             to="/login" 
@@ -49,9 +41,4 @@ const router = useRouter()
 const isAuthenticated = computed(() => {
   return !!localStorage.getItem('authToken')
 })
-
-function logout() {
-  localStorage.removeItem('authToken')
-  router.push('/login')
-}
 </script>
